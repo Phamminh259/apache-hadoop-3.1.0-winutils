@@ -1,0 +1,14 @@
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import split, expr
+from pyspark.ml.fpm import FPGrowth
+spark = SparkSession.builder.appName("FP-Growth-Example").getOrCreate()
+data = spark.read.csv("F:/sale.csv", header=True, inferSchema=True)
+data = data.withColumn("Product", split(data["Product"], ","))
+fp_growth = FPGrowth(itemsCol="Product", minSupport=0.1)
+model = fp_growth.fit(data)
+frequent_itemsets = model.freqItemsets
+frequent_itemsets.show()
+transactions = model.transform(data)
+transactions.groupBy("Contact Name").agg(expr("count(Product) as TotalProductsSold")).show()
+
+
